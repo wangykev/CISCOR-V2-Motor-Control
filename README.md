@@ -22,8 +22,22 @@ This package provides per-motor ROS 2 nodes, simple topics for commands and tele
 - Python 3.10+
 - `can-utils` and a working SocketCAN interface (e.g., `can0`)
 - A CAN adapter (MCP2515 HAT or USB-CAN)
-
+- Cubemars rlink
+- Cubemars rlink software (changing canID)
 ---
+
+
+## Test motors work/change can ID
+Download the cubemars software from https://www.cubemars.com/technical-support-and-software-download.html
+Get the AKseries 1.32 upper computer (for V2.0 motor). 
+
+**When using this software, never 'write' any paramters until you first 'read' them.** If you 'write' first the motor may stop working and you will need to import and rewrite the default parameters. The entire fix process can be found here: https://www.youtube.com/watch?v=_Cj5eYb2aw8&ab_channel=CubeMars%28MotivateAdvancedRoboticSystem%29. The files can be found in the official cubemars discord server: https://www.cubemars.com/technical-support-and-software-download.html.
+
+When opening it, switch it to english by clicking the slider on the bottom left. 
+
+First connect the uart and can with the motor and press refresh on the right, then find the correct port and press connect. You should see the motor firmware show up at the bottom of the page. On the left, click mode switch and press MIT mode. Wait for the popup that says Motor is in MIT mode. 
+
+Next, you will need to access the MIT mode controller with options to input position, speed, etc. Click 'Debug.' In the window that pops up there are options to calibrate the encoder and other features. Type in 'setup.' You will then see multiple commands. Type: **set_can_id (number you choose)**. Example: set_can_id 2. 
 
 ## Installation
 
