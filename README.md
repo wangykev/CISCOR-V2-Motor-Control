@@ -71,7 +71,7 @@ ros2 run cubemars_v2_ros motor_node --ros-args \
   -p auto_start:=true
 ```
 
-# Sending MIT command (the paramaters for your motor are specified in the manual and the motor_node.py sript):
+# Sending MIT command (the parameters for your motor are specified in the manual and the motor_node.py sript):
 ```bash
 # Float64MultiArray: [pos, vel, Kp, Kd, torque]
 ros2 topic pub /mit_cmd std_msgs/Float64MultiArray "{data: [0.0, 6.28, 0.0, 1.0, 0.0]}"
