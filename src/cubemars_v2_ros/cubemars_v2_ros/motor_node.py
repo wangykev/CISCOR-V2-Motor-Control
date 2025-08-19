@@ -4,13 +4,31 @@ from rclpy.node import Node
 from std_msgs.msg import Float64MultiArray, String, Int32, UInt8
 from sensor_msgs.msg import JointState
 
-# Motor limits (from your working scripts)
+# Motor limits (from CubeMars table)
 LIMITS = {
-    "AK70-10": dict(P_MIN=-12.5, P_MAX=12.5, V_MIN=-50.0, V_MAX=50.0,
-                    T_MIN=-25.0, T_MAX=25.0, KP_MIN=0.0, KP_MAX=500.0, KD_MIN=0.0, KD_MAX=5.0),
-    "AK80-64": dict(P_MIN=-12.5, P_MAX=12.5, V_MIN=-8.00, V_MAX=8.00,
-                    T_MIN=-144.0, T_MAX=144.0, KP_MIN=0.0, KP_MAX=500.0, KD_MIN=0.0, KD_MAX=5.0),
+    # Position is ±12.5 rad for all; Kp=[0,500], Kd=[0,5]
+    "AK10-9": dict(P_MIN=-12.5, P_MAX=12.5, V_MIN=-50.0,  V_MAX=50.0,  T_MIN=-65.0,  T_MAX=65.0,  KP_MIN=0.0, KP_MAX=500.0, KD_MIN=0.0, KD_MAX=5.0),
+    "AK60-6": dict(P_MIN=-12.5, P_MAX=12.5, V_MIN=-45.0,  V_MAX=45.0,  T_MIN=-15.0,  T_MAX=15.0,  KP_MIN=0.0, KP_MAX=500.0, KD_MIN=0.0, KD_MAX=5.0),
+    "AK70-10":dict(P_MIN=-12.5, P_MAX=12.5, V_MIN=-50.0,  V_MAX=50.0,  T_MIN=-25.0,  T_MAX=25.0,  KP_MIN=0.0, KP_MAX=500.0, KD_MIN=0.0, KD_MAX=5.0),
+    "AK80-6": dict(P_MIN=-12.5, P_MAX=12.5, V_MIN=-76.0,  V_MAX=76.0,  T_MIN=-12.0,  T_MAX=12.0,  KP_MIN=0.0, KP_MAX=500.0, KD_MIN=0.0, KD_MAX=5.0),
+    "AK80-9": dict(P_MIN=-12.5, P_MAX=12.5, V_MIN=-50.0,  V_MAX=50.0,  T_MIN=-18.0,  T_MAX=18.0,  KP_MIN=0.0, KP_MAX=500.0, KD_MIN=0.0, KD_MAX=5.0),
+    "AK80-64":dict(P_MIN=-12.5, P_MAX=12.5, V_MIN=-8.0,   V_MAX=8.0,   T_MIN=-144.0, T_MAX=144.0, KP_MIN=0.0, KP_MAX=500.0, KD_MIN=0.0, KD_MAX=5.0),
+    "AK80-8": dict(P_MIN=-12.5, P_MAX=12.5, V_MIN=-37.5,  V_MAX=37.5,  T_MIN=-32.0,  T_MAX=32.0,  KP_MIN=0.0, KP_MAX=500.0, KD_MIN=0.0, KD_MAX=5.0),
 }
+
+def normalize_motor_type(name: str) -> str:
+    s = str(name).strip().upper().replace('_', '-')
+    # Simple aliases
+    aliases = {
+        "AK10": "AK10-9",
+        "AK60": "AK60-6",
+        "AK70": "AK70-10",
+        "AK806": "AK80-6",
+        "AK809": "AK80-9",
+        "AK8064": "AK80-64",
+        "AK808": "AK80-8",
+    }
+    return aliases.get(s, s)
 
 def clamp(x, lo, hi): return lo if x < lo else hi if x > hi else x
 def f2u(x, lo, hi, bits):
@@ -85,6 +103,7 @@ class MotorNode(Node):
         self._lock = threading.Lock()
         self.cmd = [0.0, 0.0, 0.0, 0.0, 0.0]    # p, v, kp, kd, t
         self._started = False                   # track START state ourselves
+        self._neutral_hold = False   # when True, tick sends zeros regardless of cached cmd
 
         # Absolute (unwrapped) position state
         self._last_p = None
@@ -111,6 +130,7 @@ class MotorNode(Node):
             return
         with self._lock:
             self.cmd = list(map(float, msg.data))
+            self._neutral_hold = False     # new command cancels the clear-hold
         # Lazy-start exactly once on first command
         if not self._started:
             self._send_special(0xFC)
@@ -127,15 +147,19 @@ class MotorNode(Node):
                 self._send_special(0xFD)
                 self._started = False
         elif m == "zero":
-            self._send_mit_once(0,0,0,0,0)
             self._send_special(0xFE)
+        elif m == "clear":
+            with self._lock:
+                self.cmd = [0.0, 0.0, 0.0, 0.0, 0.0]  # clear cached command too
+                self._neutral_hold = True             # keep sending zeros until a new /mit_cmd
+            self._send_mit_once(0,0,0,0,0)
         else:
-            self.get_logger().warn("special: start|exit|zero")
+            self.get_logger().warn("special: start|exit|zero|clear")
 
     # ---- timers ----
     def _tick_control(self):
         with self._lock:
-            p, v, kp, kd, t = self.cmd
+            p, v, kp, kd, t = ([0.0]*5) if self._neutral_hold else self.cmd
         data = pack_mit(p, v, kp, kd, t, self.R)
         try:
             self.bus.send(can.Message(arbitration_id=self.arb, data=data, is_extended_id=False))
