@@ -39,6 +39,8 @@ First connect the uart and can with the motor and press refresh on the right, th
 
 Next, you will need to access the MIT mode controller with options to input position, speed, etc. Click 'Debug.' In the window that pops up there are options to calibrate the encoder and other features. Type in 'setup.' You will then see multiple commands. Type: **set_can_id (number you choose)**. Example: set_can_id 2. 
 
+To make sure that the can id updated, return back to the MIT controller. Input your new ID in the 'ID' slot and send a command. The motor should spin.
+
 ## Installation
 
 1) Clone into your ROS 2 workspace:
@@ -69,7 +71,7 @@ ros2 run cubemars_v2_ros motor_node --ros-args \
   -p auto_start:=true
 ```
 
-# Sending MIT command:
+# Sending MIT command (the paramaters for your motor are specified in the manual and the motor_node.py sript):
 ```bash
 # Float64MultiArray: [pos, vel, Kp, Kd, torque]
 ros2 topic pub /mit_cmd std_msgs/Float64MultiArray "{data: [0.0, 6.28, 0.0, 1.0, 0.0]}"
@@ -154,4 +156,22 @@ Publish to /<ns>/mit_cmd and /<ns>/special for that motor.
 
 Echo /<ns>/state_line (and /<ns>/joint_state, etc.) to monitor.
 
+
+
+# Joystick Control
+
+This repo also contains code for a control node where two joysticks can control an ak70-10 motor and ak80-64. The ak80-64 doesn't seem to work. 
+
+To run, 
+```bash
+cd ~/v2_ws
+colcon build --packages-select cubemars_v2_ros --symlink-install
+source install/setup.bash
+
+# If you use your combined launch:
+ros2 launch cubemars_v2_ros two_motors_joystick.launch.py \
+  can_interface:=can0 \
+  motor1_id:=3 motor1_type:=AK70-10 motor1_name:=ak70 \
+  motor2_id:=4 motor2_type:=AK80-64 motor2_name:=ak80
+```
 
