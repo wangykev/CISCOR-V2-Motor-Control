@@ -62,7 +62,7 @@ sudo ip link set can0 up type can bitrate 1000000
 
 
 ## Running a single motor:
-
+To run your specific motor, set motor_type:= to your motors model name. ex: motor_type:=AK10-9. This ensures that the node loads with the correct parameters. 
 ```bash 
 ros2 run cubemars_v2_ros motor_node --ros-args \
   -p can_interface:=can0 \
@@ -71,7 +71,8 @@ ros2 run cubemars_v2_ros motor_node --ros-args \
   -p auto_start:=true
 ```
 
-# Sending MIT command (the parameters for your motor are specified in the manual and the motor_node.py sript):
+# Sending MIT command:
+The parameter ranges for your motor are specified in the manual and the motor_node.py script
 ```bash
 # Float64MultiArray: [pos, vel, Kp, Kd, torque]
 ros2 topic pub /mit_cmd std_msgs/Float64MultiArray "{data: [0.0, 6.28, 0.0, 1.0, 0.0]}"
@@ -96,6 +97,7 @@ ros2 topic pub --once /special std_msgs/String "data: clear" #sets all the value
 ## Running multiple Motors (example)
 
 # Motor A (ID 3) in one terminal
+For your specific motor, replace all instances of ak70/AK70-10 with your motor. 
 ```bash
 cd ~/v2_ws
 colcon build --packages-select cubemars_v2_ros --symlink-install
