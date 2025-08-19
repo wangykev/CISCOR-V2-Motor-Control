@@ -1,0 +1,12 @@
+# ROS 2 colcon workspace
+build/
+install/
+log/
+# Python
+__pycache__/
+*.pyc
+# IDE
+.vscode/
+.idea/
+# OS
+.DS_Store

@@ -1,57 +1,52 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
-def arg(name, default, desc):
-    return DeclareLaunchArgument(name, default_value=str(default), description=desc)
+def generate_launch_description():
+    # Common gains (tweak as needed)
+    KP = '400.0'
+    KD = '2.5'
 
-def motor(name, can_id, motor_type, iface, control_hz, auto_start):
-    return Node(
-        package='cubemars_v2_ros',
-        executable='motor_node',
-        name=name,
-        namespace=name,  # topics become /<name>/mit_cmd, /<name>/state_line, ...
+    ak70 = Node(
+        package='YOUR_PKG_NAME',  # <-- change
+        executable='joystick_turntable',  # if installed via entry point; else use Python path
+        name='ak70_joystick',
         output='screen',
-        parameters=[{
-            'can_interface': iface,
-            'can_id': can_id,
-            'motor_type': motor_type,   # 'AK70-10' or 'AK80-64'
-            'control_hz': control_hz,   # e.g., 200.0
-            'joint_name': name,
-            'auto_start': auto_start,   # false by default in our node
-        }],
+        parameters=[
+            {'motor_ns': 'ak70'},
+            {'kp': KP}, {'kd': KD},
+            {'control_hz': 200.0},
+            # Left stick
+            {'axis_x': 0}, {'axis_y': 1},
+            {'invert_x': 1.0}, {'invert_y': -1.0},
+            # Same direction as stick
+            {'direction': 1.0},
+            # Smoothing + hysteresis
+            {'pos_lpf_hz': 10.0},
+            {'deadzone_enter': 0.15}, {'deadzone_exit': 0.10},
+            # Unlimited turns
+            {'enable_pos_clamp': False},
+        ]
     )
 
-def generate_launch_description():
-    iface       = LaunchConfiguration('can_interface')
-    control_hz  = LaunchConfiguration('control_hz')
-    auto_start  = LaunchConfiguration('auto_start')
+    ak80 = Node(
+        package='YOUR_PKG_NAME',  # <-- change
+        executable='joystick_turntable',
+        name='ak80_joystick',
+        output='screen',
+        parameters=[
+            {'motor_ns': 'ak80'},
+            {'kp': KP}, {'kd': KD},
+            {'control_hz': 200.0},
+            # Right stick (common Xbox mapping)
+            {'axis_x': 3}, {'axis_y': 4},
+            {'invert_x': 1.0}, {'invert_y': -1.0},
+            # Flip if direction feels reversed on AK80
+            {'direction': 1.0},
+            # Smoothing + hysteresis
+            {'pos_lpf_hz': 10.0},
+            {'deadzone_enter': 0.15}, {'deadzone_exit': 0.10},
+            {'enable_pos_clamp': False},
+        ]
+    )
 
-    m1_id   = LaunchConfiguration('motor1_id')
-    m1_type = LaunchConfiguration('motor1_type')
-    m1_name = LaunchConfiguration('motor1_name')
-
-    m2_id   = LaunchConfiguration('motor2_id')
-    m2_type = LaunchConfiguration('motor2_type')
-    m2_name = LaunchConfiguration('motor2_name')
-
-    return LaunchDescription([
-        # Shared args
-        arg('can_interface', 'can0', 'SocketCAN interface'),
-        arg('control_hz', '200.0', 'Control loop rate (Hz)'),
-        arg('auto_start', 'false', 'Send START once on launch'),
-
-        # Motor 1
-        arg('motor1_id',   '3',        'Motor 1 CAN ID'),
-        arg('motor1_type', 'AK70-10',  'Motor 1 type'),
-        arg('motor1_name', 'ak70',     'Motor 1 name/namespace'),
-
-        # Motor 2
-        arg('motor2_id',   '4',        'Motor 2 CAN ID'),
-        arg('motor2_type', 'AK80-64',  'Motor 2 type'),
-        arg('motor2_name', 'ak80',     'Motor 2 name/namespace'),
-
-        motor(m1_name, m1_id, m1_type, iface, control_hz, auto_start),
-        motor(m2_name, m2_id, m2_type, iface, control_hz, auto_start),
-    ])
+    return LaunchDescription([ak70, ak80])

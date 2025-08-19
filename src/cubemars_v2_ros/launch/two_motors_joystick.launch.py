@@ -61,10 +61,18 @@ def generate_launch_description():
             parameters=[{
                 'motor1_ns': m1_name,
                 'motor2_ns': m2_name,
-                'auto_start': True,     # send 'start' once for both
-                'kp': 30.0,
-                'kd': 0.7,
-                'max_rate': 2.0,        # rad/s per full stick
+                'auto_start': True,
+
+                # Controller gains
+                'kp1': 500.0,
+                'kd1': 0.5,
+                'kp2': 30.0,
+                'kd2': 0.7,
+
+                # Full stick circle = full motor revolution
+                'gain_per_rev1': 6.283,
+                'gain_per_rev2': 6.283,
+
                 'deadzone': 0.10,
             }],
         ),
