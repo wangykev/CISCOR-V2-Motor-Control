@@ -64,16 +64,19 @@ def generate_launch_description():
                 'auto_start': True,
 
                 # Controller gains
-                'kp1': 500.0,
-                'kd1': 0.5,
-                'kp2': 30.0,
-                'kd2': 0.7,
+                'kp1': 30.0,
+                'kd1': 0.7,
+                'kp2': 500.0,
+                'kd2': 1.5,
+                'pos_lpf_hz': 15.0,
 
                 # Full stick circle = full motor revolution
                 'gain_per_rev1': 6.283,
                 'gain_per_rev2': 6.283,
 
-                'deadzone': 0.10,
+                'deadzone_enter': 0.0,
+                'deadzone_exit': 0.0,
+
             }],
         ),
     ])
