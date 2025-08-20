@@ -167,7 +167,9 @@ Echo /<ns>/state_line (and /<ns>/joint_state, etc.) to monitor.
 
 # Joystick Control
 
-This repo also contains code for a control node where two joysticks can control an ak70-10 motor and ak80-64. The ak80-64 doesn't seem to work. 
+This repo also contains code for a control node where two joysticks can control an ak70-10 motor and ak80-64. The ak80-64 works but is extremely slow and wont respond to movement unless there is a large enough error to overcome friction. The ak70 works very well.
+
+If spun past the +/- 12.5 radian maximums the joystick will need to be spun back up/down until its within the +/- 12.5 radian range. 
 
 To run, 
 ```bash
