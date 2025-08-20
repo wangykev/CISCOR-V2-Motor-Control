@@ -72,11 +72,15 @@ ros2 run cubemars_v2_ros motor_node --ros-args \
 ```
 
 # Sending MIT command:
-The parameter ranges for your motor are specified in the manual and the motor_node.py script
+The parameter ranges for your motor are specified in the manual and the motor_node.py script  
+
 **Position Loop Mode**: Operates the motor with a specified position and Kp, Kd values, the motor
-is going to rotate to the specified position. 
-**Velocity Loop Mode**: Operates the motor with a specified speed and Kd value, the motor is going to rotate at the specified speed. 
-**Current Loop Mode**: Operates the motor with a specified torque value, the motor is going to rotate at the specified torque value.
+is going to rotate to the specified position.  
+
+**Velocity Loop Mode**: Operates the motor with a specified speed and Kd value, the motor is going to rotate at the specified speed.   
+
+**Current Loop Mode**: Operates the motor with a specified torque value, the motor is going to rotate at the specified torque value.  
+
 ```bash
 # Float64MultiArray: [pos, vel, Kp, Kd, torque]
 # The following command is for a velocity loop
